@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Demo-Portal – Technik</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23047857'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11.5' fill='none' stroke='%23ffffff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+  :root { --bg: #f7f9f8; --fg: #16201c; --muted: #4b5a54; --line: #d6e0db; --accent: #047857; --code: #eef3f1; color-scheme: light; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0f1513; --fg: #e8efec; --muted: #a9b8b1; --line: #26332e; --accent: #34d399; --code: #17201d; color-scheme: dark; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 24px max(16px, env(safe-area-inset-right)) 48px max(16px, env(safe-area-inset-left)); }
+  .top { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; font-size: 0.9rem; }
+  a { color: var(--accent); text-underline-offset: 3px; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+  h1 { font-size: 1.7rem; line-height: 1.2; margin: 12px 0 8px; text-wrap: balance; }
+  h2 { font-size: 1.25rem; margin: 32px 0 8px; padding-top: 12px; border-top: 1px solid var(--line); }
+  h3 { font-size: 1.05rem; margin: 22px 0 6px; }
+  p, li { color: var(--fg); }
+  code { background: var(--code); padding: 1px 5px; border-radius: 5px; font-size: 0.9em; }
+  pre { background: var(--code); padding: 12px 14px; border-radius: 10px; overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  .table { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
+  th, td { border-bottom: 1px solid var(--line); padding: 7px 8px; text-align: left; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  blockquote { margin: 12px 0; padding: 4px 14px; border-left: 3px solid var(--accent); color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+<nav class="top" aria-label="Navigation"><a href="./">← Zum Demo-Portal</a><a href="app.js">Code ansehen (app.js)</a></nav>
+<h1>Demo-Portal – Technik</h1>
+<p>Dieses Dokument beschreibt den Prototyp, wie er heute ist, und wie daraus ein Pilot in einer Firma mit etwa 60 Personen werden kann. Im ganzen Dokument gilt diese Kennzeichnung:</p>
+<ul>
+<li><strong>(Stand heute)</strong>: gibt es im Prototyp.</li>
+<li><strong>(geplant)</strong>: Vorschlag für einen Pilot, noch nicht gebaut. Zahlen dazu sind Schätzungen, keine Messungen.</li>
+</ul>
+<h2>Überblick</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Thema</th>
+<th>Stand heute (Prototyp)</th>
+<th>Geplant (Pilot)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Aufbau</td>
+<td>drei statische Dateien</td>
+<td>kleine Web-App mit API und Datenbank</td>
+</tr>
+<tr>
+<td>Daten</td>
+<td>nur im Browser (<code>localStorage</code>)</td>
+<td>SQLite oder PostgreSQL auf einem Server</td>
+</tr>
+<tr>
+<td>Anmeldung, Rollen</td>
+<td>keine</td>
+<td>Single Sign-on über das Firmenverzeichnis, drei Rollen</td>
+</tr>
+<tr>
+<td>Nachvollziehbarkeit</td>
+<td>keine</td>
+<td>Audit-Trail</td>
+</tr>
+<tr>
+<td>Benachrichtigung</td>
+<td>keine</td>
+<td>E-Mail oder Chat (z. B. Teams)</td>
+</tr>
+<tr>
+<td>Ticketsystem, ERP</td>
+<td>Anliegen-Nummer als Text, Demo als Link</td>
+<td>Verknüpfung nur über IDs</td>
+</tr>
+<tr>
+<td>Betrieb</td>
+<td>jeder statische Webserver</td>
+<td>eine VM mit Docker und Reverse Proxy, im Haus oder in der EU</td>
+</tr>
+</tbody>
+</table></div>
+<h2>1. Der Prototyp (Stand heute)</h2>
+<h3>Aufbau</h3>
+<ul>
+<li>Drei Dateien: <code>index.html</code>, <code>styles.css</code>, <code>app.js</code>. Kein Build, keine Bibliotheken, keine externen Ressourcen (keine CDNs, keine Webfonts, keine Tracker).</li>
+<li>Kein Server-Teil. Auslieferung über jeden statischen Webserver; online unter https://barneysintro.space/portal/ (auf der Website liegen die Dateien in <code>public/portal/</code>).</li>
+<li>Eine Seite mit zwei Reitern: <strong>Demos</strong> und <strong>Anfrage stellen</strong>.</li>
+</ul>
+<h3>Datenmodell</h3>
+<pre><code class="language-text">Demo {
+  id: string                 // &quot;d1&quot;
+  title: string              // &quot;Support-Anfragen vorsortieren&quot;
+  caseId: string             // &quot;ANL-2026-014&quot; (Anliegen-Nummer, frei wählbar)
+  department: string         // &quot;Kundendienst&quot;
+  requester: string          // &quot;Anna Beispiel&quot; (erfunden)
+  status: &quot;idee&quot; | &quot;in-arbeit&quot; | &quot;zum-testen&quot; | &quot;freigegeben&quot; | &quot;pausiert&quot;
+  summary: string            // ein Satz: was die Demo tut
+  tryUrl?: string            // Link zum Ausprobieren; fehlt = &quot;Vorschau&quot; mit Schritten
+  steps?: string[]           // 3–5 Schritte, was die Demo macht (für die Vorschau)
+  versions: { version: string; date: string; notes: string }[]   // neueste zuerst
+}
+Feedback { id, demoId, version, rating: &quot;passt&quot; | &quot;teilweise&quot; | &quot;passt-nicht&quot;, text, author?, date }
+Request  { id, title, department, author?, today, frequency: &quot;taeglich&quot; | &quot;woechentlich&quot; | &quot;monatlich&quot; | &quot;seltener&quot;,
+           minutes: number, systems, urgency: &quot;normal&quot; | &quot;bald&quot; | &quot;dringend&quot;, date, status: &quot;eingegangen&quot; }
+</code></pre>
+<p>Eine Rückmeldung gehört über <code>demoId</code> und <code>version</code> zu genau einer Demo-Version. Die Anliegen-Nummer (<code>caseId</code>) ist freier Text: Sie kann aus jedem Ticketsystem stammen. Darum ist das Modell an kein Produkt gebunden.</p>
+<h3>Speicherung</h3>
+<ul>
+<li>Beispieldaten: fünf Demos, einige Rückmeldungen, zwei Anfragen. Alle erfunden; nur der Link von Demo 1 führt zu einer echten Live-Demo.</li>
+<li>Neue Rückmeldungen und Anfragen speichert der Browser im <code>localStorage</code> unter dem Schlüssel <code>demoPortal.v1</code>. Sie bleiben in diesem Browser auf diesem Gerät.</li>
+<li>Jeder Zugriff auf <code>localStorage</code> steht in <code>try/catch</code>. Ist kein Speicher verfügbar, funktioniert die Seite trotzdem, nur ohne Merken.</li>
+<li>„Beispieldaten wiederherstellen“ im Fuß der Seite setzt den Stand zurück.</li>
+</ul>
+<h3>Sicherheitsmaßnahmen</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Maßnahme</th>
+<th>Wirkung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Benutzereingaben werden nur über <code>textContent</code> angezeigt, nie über <code>innerHTML</code>.</td>
+<td>Eingegebener Text wird nie als HTML interpretiert oder als Skript ausgeführt (Schutz vor XSS).</td>
+</tr>
+<tr>
+<td>Längengrenzen: Name 60, Titel 120, Texte 1.000 Zeichen.</td>
+<td>Keine übergroßen Einträge.</td>
+</tr>
+<tr>
+<td>Kein Server-Teil, keine externen Ressourcen.</td>
+<td>Das Portal schickt keine Eingaben weg und lädt keinen fremden Code.</td>
+</tr>
+<tr>
+<td>Content-Security-Policy der Website: <code>default-src 'self'</code>, <code>connect-src 'self'</code>, <code>object-src 'none'</code>, <code>base-uri 'self'</code>, <code>form-action 'self'</code>, <code>frame-ancestors 'none'</code>.</td>
+<td>Der Browser lädt Skripte, Stile und Schriften nur von der eigenen Domain und baut keine Verbindungen zu fremden Servern auf. Die Seite lässt sich nicht in fremde Seiten einbetten.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Hinweis: Die CSP gilt für die ganze Website und erlaubt dort wegen anderer Seiten noch <code>'unsafe-inline'</code> für Skripte und Stile. Für den Pilot ist eine eigene, strengere CSP ohne <code>'unsafe-inline'</code> vorgesehen.</p>
+<h3>Bewusst weggelassen</h3>
+<p>Keine Anmeldung, keine gemeinsamen Daten zwischen Personen, keine Benachrichtigungen, keine Anbindung an Ticketsystem oder ERP, kein Anlegen von Demos über die Oberfläche. Der Prototyp macht den Ablauf sichtbar, damit man ihn besprechen kann.</p>
+<h2>2. Zielarchitektur für einen Pilot (geplant)</h2>
+<pre><code class="language-text">Browser (Intranet oder VPN)
+   │  HTTPS
+Reverse Proxy (TLS)
+   │
+Web-App mit API ──── Datenbank (SQLite oder PostgreSQL), inkl. Audit-Trail
+   ├── Anmeldung: Firmenverzeichnis, Single Sign-on (OpenID Connect oder SAML)
+   ├── Benachrichtigung: E-Mail (Mailserver der Firma) oder Chat (z. B. Teams)
+   └── Links: Ticketsystem und ERP, nur über IDs
+</code></pre>
+<ul>
+<li><strong>Oberfläche:</strong> dieselben drei Funktionen wie im Prototyp. Statt <code>localStorage</code> spricht sie mit der API.</li>
+<li><strong>API:</strong> wenige JSON-Endpunkte, zum Beispiel <code>GET /api/demos</code>, <code>POST /api/demos/{id}/feedback</code>, <code>POST /api/requests</code>, <code>PATCH /api/requests/{id}</code>. Die API prüft jede Eingabe (Typ, erlaubte Werte, dieselben Längengrenzen) und bei jedem Aufruf die Rolle.</li>
+<li><strong>Datenbank:</strong> SQLite reicht für den Pilot: eine Datei, einfach zu sichern. PostgreSQL, wenn die Firma es ohnehin betreibt oder mehrere Anwendungen darauf zugreifen sollen.</li>
+<li><strong>Anmeldung:</strong> über das Firmenverzeichnis per Single Sign-on (zum Beispiel OpenID Connect oder SAML gegen den vorhandenen Identity Provider). Keine eigenen Passwörter. Die Rollen kommen aus Gruppen im Verzeichnis.</li>
+</ul>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Rolle</th>
+<th>Sieht</th>
+<th>Darf</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mitarbeitende</td>
+<td>alle Demos und ihre Rückmeldungen, die eigenen Anfragen</td>
+<td>ausprobieren, Rückmeldung geben, Anfragen stellen</td>
+</tr>
+<tr>
+<td>Automatisierung</td>
+<td>alles</td>
+<td>Demos und Versionen pflegen, Status setzen, Anfragen bearbeiten</td>
+</tr>
+<tr>
+<td>Leitung</td>
+<td>alles, Auswertungen nur zusammengefasst</td>
+<td>Prioritäten setzen, Demos freigeben</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>Audit-Trail:</strong> Jede Änderung (neue Version, Statuswechsel, Freigabe, Löschung) wird mit Zeit, Person, Objekt, altem und neuem Wert gespeichert. An die Tabelle wird nur angehängt; Freitexte stehen nicht darin.</li>
+<li><strong>Benachrichtigungen:</strong> neue Anfrage → Automatisierung; neue Version zum Testen → anfragende Person; neue Rückmeldung → Automatisierung. Per E-Mail oder als Nachricht in einen Chat-Kanal (z. B. Teams). Inhalt nur Titel, Nummer und Link, keine Freitexte.</li>
+<li><strong>Ticketsystem und ERP:</strong> Das Portal speichert nur Nummern (Ticketnummer, Auftrags- oder Belegnummer) und baut daraus Links. Es kopiert keine Daten und schreibt nichts ins ERP. So bleibt es für jedes Ticketsystem und jedes ERP gleich.</li>
+</ul>
+<h3>Sicherheit im Pilot</h3>
+<ul>
+<li>HTTPS überall; Sitzungs-Cookie mit <code>HttpOnly</code>, <code>Secure</code> und <code>SameSite</code>, Schutz gegen CSRF.</li>
+<li>Rollen werden serverseitig geprüft, nicht nur in der Oberfläche. Anzeige weiterhin nur über <code>textContent</code>.</li>
+<li>Eigene CSP ohne <code>'unsafe-inline'</code>; Begrenzung der Aufrufe (Rate Limit) am Reverse Proxy.</li>
+<li>Die Datenbank ist nur im internen Docker-Netz erreichbar, Container laufen ohne Root-Rechte. Zugangsdaten (SSO, Mail) liegen nur als Secrets auf dem Server, nie im Repository.</li>
+</ul>
+<h3>Datenschutz (DSGVO)</h3>
+<ul>
+<li><strong>Zweck:</strong> Anfragen zu Automatisierungen sammeln und Demos gemeinsam verbessern. Nur dafür.</li>
+<li><strong>Datenminimierung:</strong> Gespeichert wird, was der Ablauf braucht: Titel, Abteilung, heutiger Ablauf, Häufigkeit, Dauer, Programme, Dringlichkeit, Rückmeldung. Das Formular im Pilot bittet ausdrücklich: keine Kunden- oder Personaldaten, keine Passwörter. Ob der eigene Name bei einer Rückmeldung für andere sichtbar ist, bleibt freiwillig.</li>
+<li><strong>Wer sieht was:</strong> siehe Rollen. Die Leitung sieht Zahlen pro Abteilung, aber keine Auswertung einzelner Personen. Das Portal dient nicht der Leistungs- oder Verhaltenskontrolle.</li>
+<li><strong>Aufbewahrung (Vorschlag, mit der Datenschutz-Ansprechperson abzustimmen):</strong> Anfragen und Rückmeldungen 12 Monate nach Abschluss, dann löschen oder anonymisieren; Audit-Trail 24 Monate; Server-Logs 30 Tage; Sicherungen 30 Tage, damit Gelöschtes spätestens dann auch aus den Sicherungen verschwindet.</li>
+<li><strong>Betroffenenrechte:</strong> Die Einträge einer Person lassen sich exportieren und löschen.</li>
+<li><strong>Organisatorisch:</strong> Eintrag im Verzeichnis der Verarbeitungstätigkeiten; einen vorhandenen Betriebsrat früh einbinden; bei Cloud-Betrieb ein Auftragsverarbeitungsvertrag und ein Rechenzentrum in der EU.</li>
+</ul>
+<h2>3. Betriebsvarianten (geplant)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th></th>
+<th>A: im eigenen Haus</th>
+<th>B: kleiner Cloud-Server in der EU</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Server</td>
+<td>eine Linux-VM auf der vorhandenen Virtualisierung</td>
+<td>ein kleiner virtueller Server mit Rechenzentrum in der EU</td>
+</tr>
+<tr>
+<td>Software</td>
+<td>Docker Compose: App, optional PostgreSQL, Reverse Proxy (zum Beispiel nginx oder Caddy); feste Image-Versionen, nicht <code>latest</code></td>
+<td>gleich</td>
+</tr>
+<tr>
+<td>Zugang</td>
+<td>HTTPS mit Zertifikat; nur im Intranet oder über VPN, keine Portfreigabe ins Internet</td>
+<td>HTTPS; Zugang nur über VPN oder für die Firmen-IP freigegeben, dazu SSO</td>
+</tr>
+<tr>
+<td>Datenschutz</td>
+<td>Daten bleiben im Haus</td>
+<td>Auftragsverarbeitungsvertrag mit dem Anbieter</td>
+</tr>
+<tr>
+<td>Sinnvoll, wenn</td>
+<td>Server und Sicherung schon vorhanden sind</td>
+<td>es keine eigene Infrastruktur gibt</td>
+</tr>
+</tbody>
+</table></div>
+<h2>4. Kapazitätsplan für etwa 60 Personen (geplant, Schätzung)</h2>
+<h3>Annahmen</h3>
+<p>Die Planwerte sind bewusst großzügig; realistisch ist es deutlich weniger.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Größe</th>
+<th>Planwert</th>
+<th>Begründung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Personen mit Zugang</td>
+<td>60</td>
+<td>die ganze Organisation</td>
+</tr>
+<tr>
+<td>Gleichzeitig aktiv (Spitze)</td>
+<td>15</td>
+<td>kurz nach einer Nachricht „Neue Version zum Testen“</td>
+</tr>
+<tr>
+<td>Seitenaufrufe</td>
+<td>200 pro Tag</td>
+<td>60 Personen mit gut drei Aufrufen</td>
+</tr>
+<tr>
+<td>API-Aufrufe</td>
+<td>2.000 pro Tag</td>
+<td>rund zehn pro Seitenaufruf</td>
+</tr>
+<tr>
+<td>Anfragen</td>
+<td>5 pro Tag (realistisch 1–2)</td>
+<td>Wünsche kommen nicht täglich von allen</td>
+</tr>
+<tr>
+<td>Rückmeldungen</td>
+<td>20 pro Tag (realistisch 5–10)</td>
+<td>wenige Demos gleichzeitig im Test, je Version eine Handvoll</td>
+</tr>
+</tbody>
+</table></div>
+<p>In der Spitze öffnen 15 Personen das Portal innerhalb einer Minute: 15 × (3 Dateien + 10 API-Aufrufe) ≈ 200 Aufrufe pro Minute, also rund 3 pro Sekunde.</p>
+<h3>Speicher pro Jahr (220 Arbeitstage)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Daten</th>
+<th>Rechnung</th>
+<th>Ergebnis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rückmeldungen</td>
+<td>20 × 220 = 4.400, je höchstens ca. 2 KB</td>
+<td>ca. 9 MB</td>
+</tr>
+<tr>
+<td>Anfragen</td>
+<td>5 × 220 = 1.100, je höchstens ca. 5 KB</td>
+<td>ca. 6 MB</td>
+</tr>
+<tr>
+<td>Audit-Trail</td>
+<td>100 Ereignisse pro Tag (großzügig) × 220 = 22.000, je ca. 0,5 KB</td>
+<td>ca. 11 MB</td>
+</tr>
+<tr>
+<td>Demos, Versionen, Benutzer</td>
+<td></td>
+<td>unter 1 MB</td>
+</tr>
+<tr>
+<td><strong>Datenbank</strong></td>
+<td>Summe ca. 27 MB, mit Indizes und Reserve</td>
+<td><strong>unter 100 MB pro Jahr</strong></td>
+</tr>
+<tr>
+<td>Server-Logs</td>
+<td>ca. 2.600 Aufrufe × 250 Byte pro Tag, 30 Tage</td>
+<td>ca. 20 MB</td>
+</tr>
+<tr>
+<td>Sicherungen</td>
+<td>30 tägliche, komprimiert je höchstens ca. 30 MB</td>
+<td>unter 1 GB</td>
+</tr>
+</tbody>
+</table></div>
+<p>Anhänge sind im Pilot nicht vorgesehen. Kämen sie dazu, bräuchten sie ein Größenlimit und einen eigenen Speicherplan.</p>
+<h3>Server und Netzwerk</h3>
+<ul>
+<li><strong>CPU: 2 vCPU.</strong> Eine einfache API mit SQLite beantwortet einen Aufruf in wenigen Millisekunden. Bei rund 3 Aufrufen pro Sekunde bleibt die Last deutlich unter 5 %.</li>
+<li><strong>RAM: 4 GB.</strong> Betriebssystem ca. 0,5 GB, App ca. 0,3 GB, PostgreSQL (falls genutzt) ca. 0,5 GB, Reverse Proxy unter 0,1 GB: zusammen etwa 1,5 GB. 2 GB würden reichen, 4 GB geben Reserve.</li>
+<li><strong>Platte: 40 GB SSD.</strong> System und Container-Images ca. 10 GB; Datenbank, Logs und lokale Sicherungen zusammen unter 2 GB pro Jahr.</li>
+<li><strong>Netzwerk:</strong> Seite, Stile und Skript geschätzt unter 100 KB, API-Antworten wenige KB. Pro Tag: 200 × 100 KB + 2.000 × 5 KB ≈ 30 MB. Spitze: 15 Seitenaufrufe pro Minute × ca. 150 KB ≈ 2,3 MB pro Minute ≈ 0,3 Mbit/s. Jede Büroleitung reicht.</li>
+</ul>
+<h3>Sicherung und Wiederherstellung</h3>
+<ul>
+<li>Jede Nacht eine Sicherung der Datenbank (SQLite: Online-Backup mit <code>.backup</code>, PostgreSQL: <code>pg_dump</code>), verschlüsselt, auf ein zweites System (Backup-Server oder NAS der Firma, bei Variante B ein Speicher in der EU). Aufbewahrung 30 Tage.</li>
+<li>Ziele: höchstens 24 Stunden Datenverlust (RPO), wieder verfügbar innerhalb von 4 Stunden (RTO).</li>
+<li>Wiederherstellungstest vor dem Start und danach vierteljährlich auf einer Test-VM: Sicherung einspielen, anmelden, Stichprobe prüfen, Dauer notieren.</li>
+</ul>
+<h3>Monitoring</h3>
+<ul>
+<li>Erreichbarkeit: Health-Check (<code>/healthz</code>) alle 5 Minuten über das vorhandene Monitoring der Firma.</li>
+<li>Alarm bei: Dienst nicht erreichbar, Plattenplatz über 80 %, Zertifikat läuft in weniger als 14 Tagen ab, nächtliche Sicherung fehlt oder ist fehlgeschlagen, auffällig viele Serverfehler (HTTP 5xx).</li>
+</ul>
+<h3>Warum eine kleine VM reicht</h3>
+<ul>
+<li><strong>Die Last ist klein:</strong> wenige Aufrufe pro Sekunde in der Spitze, die Daten wachsen um Megabytes, nicht um Gigabytes. Auch die zehnfache Last läge weit unter dem, was diese VM schafft.</li>
+<li><strong>Das Portal ist nicht geschäftskritisch:</strong> Fällt es ein paar Stunden aus, gehen Wünsche kurz per E-Mail. Ein Cluster oder eine zweite VM brächte mehr Aufwand und mehr Fehlerquellen, aber keinen Nutzen.</li>
+<li><strong>Wachstum ist einfach:</strong> mehr RAM, von SQLite auf PostgreSQL. Ein zweiter Server ist erst bei einem Vielfachen der Nutzung ein Thema.</li>
+</ul>
+<h2>5. Betrieb (geplant)</h2>
+<ul>
+<li><strong>Updates:</strong> Sicherheitsupdates für Betriebssystem und Container zeitnah, kritische innerhalb weniger Tage; sonst monatlich in einem festen Wartungsfenster. Ablauf: Sicherung → Update in einer Testinstanz → kurzer Funktionstest → Produktion.</li>
+<li><strong>Sicherungen:</strong> wie oben; das Ergebnis jeder Sicherung landet im Monitoring.</li>
+<li><strong>Logs:</strong> Zugriffs- und Fehlerlogs ohne Eingabedaten und ohne Freitexte, 30 Tage. Fachliche Änderungen stehen im Audit-Trail, nicht im Log.</li>
+<li><strong>Zuständigkeit:</strong> Betrieb durch die Automatisierung, Vertretung durch die IT. Ein kurzes Betriebshandbuch: Start, Stopp, Update, Wiederherstellung.</li>
+<li><strong>Aufwand (Schätzung):</strong> etwa ein bis zwei Stunden im Monat für Updates und Kontrollen, dazu der vierteljährliche Wiederherstellungstest.</li>
+</ul>
+<h2>6. Roadmap</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Inhalt</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0. Prototyp</td>
+<td>drei statische Dateien, Beispieldaten, Speicherung im Browser; den Ablauf zeigen und besprechen</td>
+<td><strong>Stand heute</strong></td>
+</tr>
+<tr>
+<td>1. Pilot mit einem Team</td>
+<td>Web-App mit API und SQLite, Single Sign-on, Rollen, Audit-Trail, Benachrichtigungen, Links über Nummern. Ein Team mit 5–15 Personen, 4–6 Wochen. Aufbau grob zwei bis drei Wochen, je nachdem, wie schnell Anmeldung, Server und Mailzugang bereitstehen. Danach Auswertung: Kommen Anfragen mit allen Angaben? Gibt es Rückmeldungen pro Version? Wie lange dauert es von der Anfrage bis zur ersten Demo?</td>
+<td>geplant</td>
+</tr>
+<tr>
+<td>2. Ausbau</td>
+<td>weitere Teams, Löschfristen automatisch, bei Bedarf PostgreSQL, Kurzanleitung und eine Einschulung von 15 Minuten</td>
+<td>geplant</td>
+</tr>
+</tbody>
+</table></div>
+</main>
+</body>
+</html>
