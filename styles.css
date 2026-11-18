@@ -315,6 +315,64 @@ a {
   outline: none;
 }
 
+/* Four steps of the collaboration: a real sequence, so the numbers carry meaning. */
+.flow {
+  list-style: none;
+  margin: 0 0 18px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  counter-reset: flow;
+}
+
+.flow li {
+  counter-increment: flow;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 10px;
+  align-items: start;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.flow li::before {
+  content: counter(flow);
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.flow strong {
+  color: var(--text);
+  font-size: 0.92rem;
+}
+
+.flow span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+/* Phones: only the four step names, two by two, to keep the list of demos close to the top. */
+@media (max-width: 720px) {
+  .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-bottom: 14px; }
+  .flow li { align-items: center; padding: 8px 10px; }
+  .flow li::before { grid-row: auto; }
+  .flow span { display: none; }
+}
+
 .toolbar {
   display: flex;
   flex-wrap: wrap;
