@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="de" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demo-Portal</title>
+  <meta name="description" content="Prototyp eines neutralen Demo-Portals: Demos ausprobieren, Rückmeldung geben, Anfrage stellen. Erfundene Beispieldaten – passt zu jedem Team und jedem Ticketsystem.">
+  <meta name="robots" content="noindex">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#151b18" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23047857'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11.5' fill='none' stroke='%23ffffff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+
+  <header class="top">
+    <div class="wrap top-inner">
+      <div class="brand">
+        <h1>Demo-Portal</h1>
+        <span class="tag">Prototyp</span>
+      </div>
+      <p class="subtitle">Demos ausprobieren · Rückmeldung geben · Anfrage stellen</p>
+
+      <div class="tabs" role="tablist" aria-label="Bereiche">
+        <button class="tab" type="button" role="tab" id="tab-demos" aria-selected="true" aria-controls="panel-demos">Demos</button>
+        <button class="tab" type="button" role="tab" id="tab-anfrage" aria-selected="false" aria-controls="panel-anfrage" tabindex="-1">
+          <span>Anfrage stellen</span>
+          <span class="badge" id="anfrage-zahl">0</span><span class="vh"> eigene Anfragen</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="inhalt" class="wrap main" tabindex="-1">
+    <noscript>
+      <p class="noscript">Dieses Portal braucht JavaScript. Bitte JavaScript erlauben und die Seite neu laden.</p>
+    </noscript>
+
+    <!-- Reiter 1: Demos -->
+    <section class="panel" id="panel-demos" role="tabpanel" aria-labelledby="tab-demos">
+      <h2 class="vh">Demos</h2>
+
+      <div class="toolbar">
+        <div class="search">
+          <label class="vh" for="suche">Demos suchen</label>
+          <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="11" cy="11" r="6.5"></circle>
+            <path d="M16 16l4.5 4.5"></path>
+          </svg>
+          <input id="suche" type="search" maxlength="120" autocomplete="off" spellcheck="false" placeholder="Titel, Nummer, Abteilung">
+        </div>
+
+        <div class="chips" role="group" aria-label="Nach Status filtern">
+          <button type="button" class="chip" data-status="" aria-pressed="true"><span>Alle</span></button>
+          <button type="button" class="chip" data-status="idee" aria-pressed="false"><span>Idee</span></button>
+          <button type="button" class="chip" data-status="in-arbeit" aria-pressed="false"><span>In Arbeit</span></button>
+          <button type="button" class="chip" data-status="zum-testen" aria-pressed="false"><span>Zum Testen</span></button>
+          <button type="button" class="chip" data-status="freigegeben" aria-pressed="false"><span>Freigegeben</span></button>
+          <button type="button" class="chip" data-status="pausiert" aria-pressed="false"><span>Pausiert</span></button>
+        </div>
+      </div>
+
+      <p class="result" id="ergebnis" role="status"></p>
+
+      <ul class="demo-list" id="demo-liste"></ul>
+
+      <div class="empty" id="leer" hidden>
+        <p>Keine Demo passt zu Suche und Filter.</p>
+        <button type="button" class="btn btn-secondary" id="leer-zuruecksetzen">Suche und Filter zurücksetzen</button>
+      </div>
+    </section>
+
+    <!-- Reiter 2: Anfrage stellen -->
+    <section class="panel" id="panel-anfrage" role="tabpanel" aria-labelledby="tab-anfrage" hidden>
+      <div class="split">
+        <form class="card form" id="anfrage-form" novalidate aria-labelledby="anfrage-titel">
+          <div class="form-head">
+            <h2 id="anfrage-titel">Neue Anfrage</h2>
+            <p class="muted">Kurz beschreiben, was heute Zeit kostet. Die Beispiele in den Feldern helfen.</p>
+          </div>
+
+          <div class="field">
+            <label class="label" for="a-titel">Worum geht es?</label>
+            <input id="a-titel" type="text" maxlength="120" autocomplete="off" placeholder="z. B. Rechnungen ablegen" aria-describedby="a-titel-fehler">
+            <p class="error" id="a-titel-fehler" hidden></p>
+          </div>
+
+          <div class="field">
+            <label class="label" for="a-heute">Was machen Sie heute?</label>
+            <textarea id="a-heute" rows="4" maxlength="1000" placeholder="z. B. Ich speichere jede Rechnung aus dem Postfach als PDF, benenne sie um und lege sie im richtigen Ordner ab." aria-describedby="a-heute-fehler"></textarea>
+            <p class="error" id="a-heute-fehler" hidden></p>
+          </div>
+
+          <fieldset class="field" id="a-oft" aria-describedby="a-oft-fehler">
+            <legend class="label">Wie oft?</legend>
+            <div class="opts">
+              <label class="opt"><input type="radio" name="frequency" value="taeglich"><span>Täglich</span></label>
+              <label class="opt"><input type="radio" name="frequency" value="woechentlich"><span>Wöchentlich</span></label>
+              <label class="opt"><input type="radio" name="frequency" value="monatlich"><span>Monatlich</span></label>
+              <label class="opt"><input type="radio" name="frequency" value="seltener"><span>Seltener</span></label>
+            </div>
+            <p class="error" id="a-oft-fehler" hidden></p>
+          </fieldset>
+
+          <div class="field">
+            <label class="label" for="a-minuten">Wie lange dauert es jedes Mal?</label>
+            <div class="unit">
+              <input id="a-minuten" type="text" inputmode="numeric" maxlength="12" autocomplete="off" placeholder="z. B. 20" aria-describedby="a-minuten-einheit a-minuten-fehler">
+              <span id="a-minuten-einheit">Minuten</span>
+            </div>
+            <p class="error" id="a-minuten-fehler" hidden></p>
+          </div>
+
+          <div class="field">
+            <label class="label" for="a-programme">Mit welchen Programmen?</label>
+            <input id="a-programme" type="text" maxlength="120" autocomplete="off" placeholder="z. B. E-Mail, Excel, ERP" aria-describedby="a-programme-fehler">
+            <p class="error" id="a-programme-fehler" hidden></p>
+          </div>
+
+          <fieldset class="field" id="a-dringend" aria-describedby="a-dringend-fehler">
+            <legend class="label">Wie dringend?</legend>
+            <div class="opts">
+              <label class="opt"><input type="radio" name="urgency" value="normal" checked><span>Normal</span></label>
+              <label class="opt"><input type="radio" name="urgency" value="bald"><span>Bald</span></label>
+              <label class="opt"><input type="radio" name="urgency" value="dringend"><span>Dringend</span></label>
+            </div>
+            <p class="error" id="a-dringend-fehler" hidden></p>
+          </fieldset>
+
+          <div class="pair">
+            <div class="field">
+              <label class="label" for="a-abteilung">Abteilung</label>
+              <input id="a-abteilung" type="text" maxlength="60" autocomplete="off" placeholder="z. B. Buchhaltung" aria-describedby="a-abteilung-fehler">
+              <p class="error" id="a-abteilung-fehler" hidden></p>
+            </div>
+            <div class="field">
+              <label class="label" for="a-name">Name <span class="optional">(optional)</span></label>
+              <input id="a-name" type="text" maxlength="60" autocomplete="name" placeholder="Leer lassen = anonym">
+            </div>
+          </div>
+
+          <div class="form-end">
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Anfrage senden</button>
+            </div>
+            <div class="form-status" id="anfrage-status" role="status"></div>
+          </div>
+        </form>
+
+        <section class="card" aria-labelledby="liste-titel">
+          <h2 id="liste-titel">Ihre Anfragen</h2>
+          <ul class="req-list" id="anfrage-liste"></ul>
+          <p class="muted" id="anfrage-leer" hidden>Noch keine Anfragen.</p>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap">
+      <div class="foot-row">
+        <p class="foot-note"><strong>Prototyp – Einträge bleiben nur in diesem Browser.</strong></p>
+        <button type="button" class="btn btn-secondary" id="reset" aria-expanded="false" aria-controls="reset-frage">Beispieldaten wiederherstellen</button>
+        <a class="link" href="https://barneysintro.space/">Zur Website</a>
+        <a class="link" href="https://barneysintro.space/privacy">Datenschutz</a>
+      </div>
+
+      <div class="reset-ask" id="reset-frage" hidden>
+        <p>Eigene Rückmeldungen und Anfragen in diesem Browser löschen und die Beispieldaten laden?</p>
+        <div class="reset-actions">
+          <button type="button" class="btn btn-primary" id="reset-ja">Ja, wiederherstellen</button>
+          <button type="button" class="btn btn-secondary" id="reset-nein">Abbrechen</button>
+        </div>
+      </div>
+      <p class="reset-status" id="reset-status" role="status"></p>
+
+      <p class="foot-small">Neutral und universell: Alle Namen und Daten sind erfunden („Beispiel GmbH“). Passt zu jedem Team und jedem Ticketsystem – das Anliegen ist nur eine Nummer, die Demo nur ein Link.</p>
+      <p class="foot-small foot-warn" id="speicher-hinweis" hidden>Speichern ist in diesem Browser gerade nicht möglich – Einträge verschwinden beim Neuladen.</p>
+    </div>
+  </footer>
+</body>
+</html>
